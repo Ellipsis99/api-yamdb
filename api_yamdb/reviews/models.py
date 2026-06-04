@@ -1,5 +1,7 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 
+from .utils import current_year
 
 class Genre(models.Model):
     name = models.CharField(max_length=256)
@@ -13,7 +15,12 @@ class Category(models.Model):
 
 class Title(models.Model):
     name = models.CharField(max_length=256)
-    year = models.IntegerField()
+    year = models.IntegerField(
+        validators=[
+        MinValueValidator(0, message="Год выпуска произведения не может быть отрицательным!"),
+        MaxValueValidator(current_year, message='Год выпуска произведения не может быть больше текущего!')
+        ]
+    )
     description = models.TextField(null=True, blank=True)
     genre = models.ManyToManyField(
         Genre,
@@ -27,13 +34,18 @@ class Title(models.Model):
         blank=True,
         related_name='titles'
     )
+    
 
 
 class GenreTitle(models.Model):
     genre = models.ForeignKey(
-        Genre,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
+        Genre, on_delete=models.CASCADE
     )
-    title = models.ForeignKey(Title)
+    title = models.ForeignKey(
+        Title, on_delete=models.CASCADE
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['genre', 'title'], name='unique_genre_title')
+        ]
