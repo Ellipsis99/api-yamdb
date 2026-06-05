@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'django_filters',  # fix: для DjangoFilterBackend в TitleViewSet (dev2)
     'users',
     'reviews',  # fix #4: приложение reviews не было в INSTALLED_APPS
     'api',

@@ -1,39 +1,69 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import (
-    MaxValueValidator,
-    MinValueValidator,
-)
 from django.db import models
-from django.db.models import Avg
+from django.core.validators import MinValueValidator, MaxValueValidator
 
+from .utils import current_year
+
+# dev3 (моя): пользователь для авторства отзывов/комментариев
 User = get_user_model()
 
 MIN_SCORE = 1
 MAX_SCORE = 10
 
 
-# === Заглушка зоны dev2 ===
-# Произведения/категории/жанры и их API — задача dev2, на develop их нет.
-# Здесь оставлена МИНИМАЛЬНАЯ модель Title как контракт: на неё ссылается
-# Review (FK) и считается рейтинг. dev2 заменит её полной версией
-# (year, description, genre M2M, category FK) и добавит API.
-class Title(models.Model):
-    """Произведение (заглушка). Полную версию делает dev2."""
+# === Зона dev2: произведения, категории, жанры (feature/titles-part) ===
+class Genre(models.Model):
+    name = models.CharField(max_length=256)
+    slug = models.CharField(max_length=50, unique=True)
 
-    name = models.CharField('название', max_length=256)
+
+class Category(models.Model):
+    name = models.CharField(max_length=256)
+    slug = models.CharField(max_length=50, unique=True)
+
+
+class Title(models.Model):
+    name = models.CharField(max_length=256)
+    year = models.IntegerField(
+        validators=[
+            MinValueValidator(
+                0, message="Год выпуска не может быть отрицательным!"
+            ),
+            MaxValueValidator(
+                current_year,
+                message='Год выпуска не может быть больше текущего!'
+            )
+        ]
+    )
+    description = models.TextField(null=True, blank=True)
+    genre = models.ManyToManyField(
+        Genre,
+        through='GenreTitle',
+        related_name='titles'
+    )
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='titles'
+    )
+
+
+class GenreTitle(models.Model):
+    genre = models.ForeignKey(
+        Genre, on_delete=models.CASCADE
+    )
+    title = models.ForeignKey(
+        Title, on_delete=models.CASCADE
+    )
 
     class Meta:
-        verbose_name = 'произведение'
-        verbose_name_plural = 'Произведения'
-        ordering = ('name',)
-
-    def __str__(self):
-        return self.name
-
-    # dev3 (моя): рейтинг — средняя оценка по отзывам
-    @property
-    def rating(self):
-        return self.reviews.aggregate(Avg('score'))['score__avg']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['genre', 'title'], name='unique_genre_title'
+            )
+        ]
 
 
 # === Зона dev3 (моя): отзывы и комментарии ===

@@ -1,16 +1,67 @@
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
+from rest_framework import filters, mixins, viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from django_filters.rest_framework import DjangoFilterBackend
 
-from reviews.models import Review, Title
+from reviews.models import Category, Genre, Review, Title
 
-from .permissions import IsAuthorModeratorAdminOrReadOnly
-from .serializers import CommentSerializer, ReviewSerializer
+from .permissions import (
+    IsAuthorModeratorAdminOrReadOnly,
+    IsEditOrReadOnly,
+)
+from .serializers import (
+    CategorySerializer,
+    CommentSerializer,
+    GenreSerializer,
+    ReviewSerializer,
+    TitleDetailSerializer,
+    TitleSerializer,
+)
+
+
+# === Зона dev2: произведения, категории, жанры (feature/titles-part) ===
+class PropertyViewSet(
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
+    # fix: добавлены права (write — только админ) и lookup по slug
+    permission_classes = (IsEditOrReadOnly,)
+    lookup_field = 'slug'
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+
+
+class GenreViewSet(PropertyViewSet):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+
+
+class CategoryViewSet(PropertyViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    # dev3 (моя): аннотация рейтинга (Avg по отзывам) + сортировка
+    queryset = Title.objects.annotate(
+        rating=Avg('reviews__score')
+    ).order_by('name')
+    permission_classes = (IsEditOrReadOnly,)  # fix: write — только админ
+    http_method_names = ["get", "post", "patch", "delete"]
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
+
+    def get_serializer_class(self):
+        if self.action in ('create', 'partial_update'):
+            return TitleSerializer
+        return TitleDetailSerializer
 
 
 # === Зона dev3 (моя): отзывы и комментарии ===
-# Title — заглушка из reviews.models (полную модель/API делает dev2).
 class ReviewViewSet(viewsets.ModelViewSet):
     """ViewSet для отзывов, вложенных в произведение."""
 
