@@ -17,6 +17,8 @@ from .serializers import (
 )
 
 
+# === Зона dev2: произведения, категории, жанры ===
+# фильтрацию перевела с django_filter на query-параметры
 class CategoryGenreViewSet(
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
@@ -48,6 +50,7 @@ class GenreViewSet(CategoryGenreViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     """ViewSet для произведений с подсчётом рейтинга по отзывам."""
 
+    # рейтинг (Avg по отзывам) — задача dev3 (моя), живёт на произведении
     queryset = Title.objects.annotate(
         rating=Avg('reviews__score')
     ).order_by('name')
@@ -77,6 +80,7 @@ class TitleViewSet(viewsets.ModelViewSet):
         return queryset
 
 
+# === Зона dev3 (моя): отзывы и комментарии ===
 class ReviewViewSet(viewsets.ModelViewSet):
     """ViewSet для отзывов, вложенных в произведение."""
 

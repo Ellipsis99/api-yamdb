@@ -10,6 +10,7 @@ from reviews.models import (
 from reviews.utils import current_year
 
 
+# === Зона dev2: сериализаторы произведений/категорий/жанров ===
 class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор жанров."""
 
@@ -65,6 +66,7 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         return TitleReadSerializer(instance).data
 
 
+# === Зона dev3 (моя): сериализаторы отзывов и комментариев ===
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор отзывов."""
 

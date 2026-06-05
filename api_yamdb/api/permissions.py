@@ -1,6 +1,7 @@
 from rest_framework import permissions
 
 
+# dev2: права на произведения/категории/жанры
 class IsAdminOrReadOnly(permissions.BasePermission):
     """Чтение — всем, изменение — только администратору."""
 
@@ -11,6 +12,7 @@ class IsAdminOrReadOnly(permissions.BasePermission):
         )
 
 
+# dev3 (моя): права на отзывы и комментарии
 class IsAuthorModeratorAdminOrReadOnly(permissions.BasePermission):
     """Чтение — всем; запись автору, модератору или администратору."""
 

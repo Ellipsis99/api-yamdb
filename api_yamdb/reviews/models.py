@@ -13,6 +13,8 @@ MIN_SCORE = 1
 MAX_SCORE = 10
 
 
+# === Зона dev2: произведения, категории, жанры ===
+# (подняла как фундамент под отзывы; основа — ветка feature/titles-part)
 class Genre(models.Model):
     """Жанр произведения."""
 
@@ -94,6 +96,7 @@ class GenreTitle(models.Model):
         ]
 
 
+# === Зона dev3 (моя): отзывы и комментарии ===
 class Review(models.Model):
     """Отзыв пользователя на произведение."""
 
