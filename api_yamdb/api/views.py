@@ -2,6 +2,7 @@ from rest_framework import viewsets, filters, mixins
 from django_filters.rest_framework import DjangoFilterBackend
 
 from reviews.models import Genre, Title, Category
+from .permissions import IsAdminOrReadOnly
 from .serializers import (
     GenreSerializer,
     CategorySerializer,
@@ -18,6 +19,8 @@ class PropertyViewSet(
 ):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    permission_classes = (IsAdminOrReadOnly, )
+    lookup_field = 'slug'
 
 
 class GenreViewSet(PropertyViewSet):
@@ -35,6 +38,8 @@ class TitleViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "patch", "delete"]
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
+    permission_classes = (IsAdminOrReadOnly, )
+    lookup_url_kwarg = 'titles_id'
 
     def get_serializer_class(self):
         if self.action in ('create', 'partial_update'):

@@ -4,14 +4,23 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from .utils import current_year
 
 
-class Genre(models.Model):
+class PropertyModel(models.Model):
     name = models.CharField(max_length=256)
     slug = models.CharField(max_length=50, unique=True)
 
+    def __str__(self):
+        return self.name
 
-class Category(models.Model):
-    name = models.CharField(max_length=256)
-    slug = models.CharField(max_length=50, unique=True)
+    class Meta:
+        abstract = True
+
+
+class Genre(PropertyModel):
+    pass
+
+
+class Category(PropertyModel):
+    pass
 
 
 class Title(models.Model):
@@ -40,6 +49,9 @@ class Title(models.Model):
         blank=True,
         related_name='titles'
     )
+
+    def __str__(self):
+        return self.name
 
 
 class GenreTitle(models.Model):
