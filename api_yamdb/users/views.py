@@ -56,7 +56,8 @@ class UserViewSet(
     filter_backends = [filters.SearchFilter]
     search_fields = ['username']
 
-    # ВАЖНО: Убираем 'put' из разрешенных методов, чтобы Django сам возвращал 405
+    # fix #4: строка-комментарий укорочена под flake8 (E501)
+    # PUT исключён из методов — Django сам вернёт 405
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 
     def get_serializer_class(self):
@@ -86,4 +87,3 @@ class UserViewSet(
         if instance == self.request.user:
             raise permissions.PermissionDenied('Нельзя удалить самого себя.')
         instance.delete()
-        

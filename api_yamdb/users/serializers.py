@@ -1,23 +1,12 @@
-import random
 from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
 from django.core.validators import RegexValidator
-from django.conf import settings
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound
 
+# fix #4: используем общие функции из utils вместо дублей в сериализаторе
+from users.utils import generate_confirmation_code, send_confirmation_email
+
 User = get_user_model()
-
-
-def _send_confirmation_email(email, code):
-    """Отправляет письмо с кодом подтверждения"""
-    send_mail(
-        subject='Код подтверждения YaMDb',
-        message=f'Ваш код: {code}',
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[email],
-        fail_silently=False,
-    )
 
 
 class SignUpSerializer(serializers.Serializer):
@@ -39,10 +28,18 @@ class SignUpSerializer(serializers.Serializer):
             return data
 
         # Если есть конфликт по email или username — ошибка
-        if User.objects.filter(email=email).exclude(username=username).exists():
-            raise serializers.ValidationError('Пользователь с таким email уже существует.')
-        if User.objects.filter(username=username).exclude(email=email).exists():
-            raise serializers.ValidationError('Пользователь с таким username уже существует.')
+        if User.objects.filter(email=email).exclude(
+            username=username
+        ).exists():
+            raise serializers.ValidationError(
+                'Пользователь с таким email уже существует.'
+            )
+        if User.objects.filter(username=username).exclude(
+            email=email
+        ).exists():
+            raise serializers.ValidationError(
+                'Пользователь с таким username уже существует.'
+            )
 
         return data
 
@@ -51,11 +48,11 @@ class SignUpSerializer(serializers.Serializer):
             email=validated_data['email'],
             defaults={'username': validated_data['username']}
         )
-        # Генерируем новый код подтверждения (даже если пользователь уже был)
-        code = "".join([str(random.randint(0, 9)) for _ in range(6)])
+        # fix #4: код через utils (было inline random)
+        code = generate_confirmation_code()
         user.confirmation_code = code
         user.save()
-        _send_confirmation_email(user.email, code)
+        send_confirmation_email(user.email, code)
         return user
 
 
@@ -82,13 +79,17 @@ class TokenSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
+        fields = (
+            'username', 'email', 'first_name', 'last_name', 'bio', 'role'
+        )
 
 
 class MeSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         max_length=150,
-        validators=[RegexValidator(regex=r'^[\w.@+-]+\Z', message='Некорректный username.')],
+        validators=[RegexValidator(
+            regex=r'^[\w.@+-]+\Z', message='Некорректный username.'
+        )],
         required=False
     )
     email = serializers.EmailField(max_length=254, required=False)
@@ -96,5 +97,7 @@ class MeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
+        fields = (
+            'username', 'email', 'first_name', 'last_name', 'bio', 'role'
+        )
         read_only_fields = ('role',)
