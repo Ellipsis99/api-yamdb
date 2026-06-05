@@ -4,8 +4,7 @@ from django.core.validators import (
     MinValueValidator,
 )
 from django.db import models
-
-from .utils import current_year
+from django.db.models import Avg
 
 User = get_user_model()
 
@@ -13,65 +12,15 @@ MIN_SCORE = 1
 MAX_SCORE = 10
 
 
-# === Зона dev2: произведения, категории, жанры ===
-# (подняла как фундамент под отзывы; основа — ветка feature/titles-part)
-class Genre(models.Model):
-    """Жанр произведения."""
-
-    name = models.CharField('название', max_length=256)
-    slug = models.SlugField('слаг', max_length=50, unique=True)
-
-    class Meta:
-        verbose_name = 'жанр'
-        verbose_name_plural = 'Жанры'
-        ordering = ('name',)
-
-    def __str__(self):
-        return self.name
-
-
-class Category(models.Model):
-    """Категория произведения."""
-
-    name = models.CharField('название', max_length=256)
-    slug = models.SlugField('слаг', max_length=50, unique=True)
-
-    class Meta:
-        verbose_name = 'категория'
-        verbose_name_plural = 'Категории'
-        ordering = ('name',)
-
-    def __str__(self):
-        return self.name
-
-
+# === Заглушка зоны dev2 ===
+# Произведения/категории/жанры и их API — задача dev2, на develop их нет.
+# Здесь оставлена МИНИМАЛЬНАЯ модель Title как контракт: на неё ссылается
+# Review (FK) и считается рейтинг. dev2 заменит её полной версией
+# (year, description, genre M2M, category FK) и добавит API.
 class Title(models.Model):
-    """Произведение, на которое пишут отзывы."""
+    """Произведение (заглушка). Полную версию делает dev2."""
 
     name = models.CharField('название', max_length=256)
-    year = models.IntegerField(
-        'год выпуска',
-        validators=[
-            MinValueValidator(
-                0, message='Год выпуска не может быть отрицательным!'
-            ),
-            MaxValueValidator(
-                current_year,
-                message='Год выпуска не может быть больше текущего!',
-            ),
-        ],
-    )
-    description = models.TextField('описание', null=True, blank=True)
-    genre = models.ManyToManyField(
-        Genre, through='GenreTitle', related_name='titles'
-    )
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='titles',
-    )
 
     class Meta:
         verbose_name = 'произведение'
@@ -81,19 +30,10 @@ class Title(models.Model):
     def __str__(self):
         return self.name
 
-
-class GenreTitle(models.Model):
-    """Связь произведения и жанра."""
-
-    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
-    title = models.ForeignKey(Title, on_delete=models.CASCADE)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['genre', 'title'], name='unique_genre_title'
-            )
-        ]
+    # dev3 (моя): рейтинг — средняя оценка по отзывам
+    @property
+    def rating(self):
+        return self.reviews.aggregate(Avg('score'))['score__avg']
 
 
 # === Зона dev3 (моя): отзывы и комментарии ===

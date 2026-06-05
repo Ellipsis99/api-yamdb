@@ -1,20 +1,11 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import (
-    CategoryViewSet,
-    CommentViewSet,
-    GenreViewSet,
-    ReviewViewSet,
-    TitleViewSet,
-)
+from .views import CommentViewSet, ReviewViewSet
 
 router_v1 = DefaultRouter()
-# dev2: маршруты произведений/категорий/жанров
-router_v1.register('categories', CategoryViewSet, basename='categories')
-router_v1.register('genres', GenreViewSet, basename='genres')
-router_v1.register('titles', TitleViewSet, basename='titles')
-# dev3 (моя): маршруты отзывов и комментариев
+# dev3 (моя): маршруты отзывов и комментариев.
+# Маршруты categories/genres/titles — зона dev2 (добавит сам).
 router_v1.register(
     r'titles/(?P<title_id>\d+)/reviews',
     ReviewViewSet,

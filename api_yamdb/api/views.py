@@ -1,86 +1,16 @@
-from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, mixins, viewsets
+from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-from reviews.models import Category, Genre, Review, Title
+from reviews.models import Review, Title
 
-from .permissions import IsAdminOrReadOnly, IsAuthorModeratorAdminOrReadOnly
-from .serializers import (
-    CategorySerializer,
-    CommentSerializer,
-    GenreSerializer,
-    ReviewSerializer,
-    TitleReadSerializer,
-    TitleWriteSerializer,
-)
-
-
-# === Зона dev2: произведения, категории, жанры ===
-# фильтрацию перевела с django_filter на query-параметры
-class CategoryGenreViewSet(
-    mixins.CreateModelMixin,
-    mixins.DestroyModelMixin,
-    mixins.ListModelMixin,
-    viewsets.GenericViewSet,
-):
-    """Базовый ViewSet для категорий и жанров: список, создание, удаление."""
-
-    permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    lookup_field = 'slug'
-
-
-class CategoryViewSet(CategoryGenreViewSet):
-    """ViewSet для категорий."""
-
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-
-
-class GenreViewSet(CategoryGenreViewSet):
-    """ViewSet для жанров."""
-
-    queryset = Genre.objects.all()
-    serializer_class = GenreSerializer
-
-
-class TitleViewSet(viewsets.ModelViewSet):
-    """ViewSet для произведений с подсчётом рейтинга по отзывам."""
-
-    # рейтинг (Avg по отзывам) — задача dev3 (моя), живёт на произведении
-    queryset = Title.objects.annotate(
-        rating=Avg('reviews__score')
-    ).order_by('name')
-    permission_classes = (IsAdminOrReadOnly,)
-    http_method_names = ('get', 'post', 'patch', 'delete')
-
-    def get_serializer_class(self):
-        if self.action in ('create', 'partial_update'):
-            return TitleWriteSerializer
-        return TitleReadSerializer
-
-    def get_queryset(self):
-        queryset = self.queryset
-        params = self.request.query_params
-        category = params.get('category')
-        genre = params.get('genre')
-        name = params.get('name')
-        year = params.get('year')
-        if category:
-            queryset = queryset.filter(category__slug=category)
-        if genre:
-            queryset = queryset.filter(genre__slug=genre)
-        if name:
-            queryset = queryset.filter(name__icontains=name)
-        if year:
-            queryset = queryset.filter(year=year)
-        return queryset
+from .permissions import IsAuthorModeratorAdminOrReadOnly
+from .serializers import CommentSerializer, ReviewSerializer
 
 
 # === Зона dev3 (моя): отзывы и комментарии ===
+# Title — заглушка из reviews.models (полную модель/API делает dev2).
 class ReviewViewSet(viewsets.ModelViewSet):
     """ViewSet для отзывов, вложенных в произведение."""
 

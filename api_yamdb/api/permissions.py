@@ -1,18 +1,8 @@
 from rest_framework import permissions
 
 
-# dev2: права на произведения/категории/жанры
-class IsAdminOrReadOnly(permissions.BasePermission):
-    """Чтение — всем, изменение — только администратору."""
-
-    def has_permission(self, request, view):
-        return (
-            request.method in permissions.SAFE_METHODS
-            or (request.user.is_authenticated and request.user.is_admin)
-        )
-
-
-# dev3 (моя): права на отзывы и комментарии
+# dev3 (моя): права на отзывы и комментарии.
+# IsAdminOrReadOnly для произведений/категорий/жанров — зона dev2.
 class IsAuthorModeratorAdminOrReadOnly(permissions.BasePermission):
     """Чтение — всем; запись автору, модератору или администратору."""
 
