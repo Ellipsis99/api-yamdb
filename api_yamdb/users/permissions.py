@@ -7,4 +7,3 @@ class IsAdminOnly(permissions.BasePermission):
         if not request.user or request.user.is_anonymous:
             return False
         return request.user.is_admin
-    
