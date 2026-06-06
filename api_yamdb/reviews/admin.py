@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from .models import Category, Comment, Genre, GenreTitle, Review, Title
 
-# fix: в feature/titles-part admin был пуст — зарегистрировала модели
+# Зарегистрировал модели
 admin.site.register(Category)
 admin.site.register(Genre)
 admin.site.register(Title)

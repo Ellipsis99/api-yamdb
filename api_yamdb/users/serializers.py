@@ -3,7 +3,7 @@ from django.core.validators import RegexValidator
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound
 
-# fix #4: используем общие функции из utils вместо дублей в сериализаторе
+# fix используем функции из utils вместо дублей в сериализаторе
 from users.utils import generate_confirmation_code, send_confirmation_email
 
 User = get_user_model()
@@ -48,7 +48,7 @@ class SignUpSerializer(serializers.Serializer):
             email=validated_data['email'],
             defaults={'username': validated_data['username']}
         )
-        # fix #4: код через utils (было inline random)
+        # fix код через utils
         code = generate_confirmation_code()
         user.confirmation_code = code
         user.save()

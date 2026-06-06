@@ -10,11 +10,11 @@ from .views import (
 )
 
 router_v1 = DefaultRouter()
-# fix: в feature/titles-part api/urls.py был пуст — добавила регистрацию dev2
+# fix: в feature/titles-part api/urls.py был пуст — добавил регистрацию роутов
 router_v1.register('categories', CategoryViewSet, basename='categories')
 router_v1.register('genres', GenreViewSet, basename='genres')
 router_v1.register('titles', TitleViewSet, basename='titles')
-# dev3 (моя): маршруты отзывов и комментариев
+# Маршруты отзывов и комментариев
 router_v1.register(
     r'titles/(?P<title_id>\d+)/reviews',
     ReviewViewSet,

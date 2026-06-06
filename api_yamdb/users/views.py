@@ -56,7 +56,6 @@ class UserViewSet(
     filter_backends = [filters.SearchFilter]
     search_fields = ['username']
 
-    # fix #4: строка-комментарий укорочена под flake8 (E501)
     # PUT исключён из методов — Django сам вернёт 405
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 

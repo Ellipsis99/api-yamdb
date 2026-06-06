@@ -22,9 +22,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'django_filters',  # fix: для DjangoFilterBackend в TitleViewSet (dev2)
+    'django_filters',  # fix для DjangoFilterBackend в TitleViewSet
     'users',
-    'reviews',  # fix #4: приложение reviews не было в INSTALLED_APPS
+    'reviews',  # fix приложения reviews не было
     'api',
 ]
 
@@ -32,11 +32,11 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-    # fix #4: был IsAuthenticated (ломал публичное чтение) — стало ReadOnly
+    # fix был IsAuthenticated (ломал публичное чтение) — стало ReadOnly
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ),
-    # fix #4: добавлена пагинация по умолчанию (в исходном PR её не было)
+    # fix добавил пагинациию по умолчанию
     'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
@@ -108,7 +108,6 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
-# fix #4: дубликат REST_FRAMEWORK удалён — единый блок выше
 
 # Настройки электронной почты (в разработке письма выводятся в консоль)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

@@ -4,14 +4,13 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 from .utils import current_year
 
-# dev3 (моя): пользователь для авторства отзывов/комментариев
+# Пользователь для авторства отзывов/комментариев
 User = get_user_model()
 
 MIN_SCORE = 1
 MAX_SCORE = 10
 
 
-# === Зона dev2: произведения, категории, жанры (feature/titles-part) ===
 class Genre(models.Model):
     name = models.CharField(max_length=256)
     slug = models.CharField(max_length=50, unique=True)
@@ -66,7 +65,6 @@ class GenreTitle(models.Model):
         ]
 
 
-# === Зона dev3 (моя): отзывы и комментарии ===
 class Review(models.Model):
     """Отзыв пользователя на произведение."""
 

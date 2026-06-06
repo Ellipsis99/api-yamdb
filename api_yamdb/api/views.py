@@ -21,14 +21,13 @@ from .serializers import (
 )
 
 
-# === Зона dev2: произведения, категории, жанры (feature/titles-part) ===
 class PropertyViewSet(
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
-    # fix: добавлены права (write — только админ) и lookup по slug
+    # fix: добавил права (write — только админ) и lookup по slug
     permission_classes = (IsEditOrReadOnly,)
     lookup_field = 'slug'
     filter_backends = (filters.SearchFilter,)
@@ -46,7 +45,7 @@ class CategoryViewSet(PropertyViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    # dev3 (моя): аннотация рейтинга (Avg по отзывам) + сортировка
+    # Аннотация рейтинга (Avg по отзывам) + сортировка
     queryset = Title.objects.annotate(
         rating=Avg('reviews__score')
     ).order_by('name')
@@ -61,7 +60,6 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleDetailSerializer
 
 
-# === Зона dev3 (моя): отзывы и комментарии ===
 class ReviewViewSet(viewsets.ModelViewSet):
     """ViewSet для отзывов, вложенных в произведение."""
 

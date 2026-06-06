@@ -4,7 +4,6 @@ from reviews.models import Category, Comment, Genre, Review, Title
 from reviews.utils import current_year
 
 
-# === Зона dev2: сериализаторы произведений/категорий/жанров (как есть) ===
 class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -35,13 +34,14 @@ class BaseTitleSerializer(serializers.ModelSerializer):
 class TitleDetailSerializer(BaseTitleSerializer):
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
-    # dev3 (моя): рейтинг — средняя оценка по отзывам
+    # рейтинг — средняя оценка по отзывам
     rating = serializers.IntegerField(read_only=True, default=None)
 
-    class Meta(BaseTitleSerializer.Meta):
-        # dev3: добавлено поле rating в выдачу произведения
+    class Meta:
+        model = Title
         fields = (
-            'id', 'name', 'year', 'rating', 'description', 'genre', 'category'
+            'id', 'name', 'year', 'rating',
+            'description', 'genre', 'category',
         )
 
 
@@ -60,7 +60,6 @@ class TitleSerializer(BaseTitleSerializer):
         return TitleDetailSerializer(instance).data
 
 
-# === Зона dev3 (моя): сериализаторы отзывов и комментариев ===
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор отзывов."""
 
