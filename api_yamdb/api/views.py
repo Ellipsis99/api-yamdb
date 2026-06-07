@@ -1,16 +1,20 @@
-from .permissions import IsAdminOrReadOnly #пермишен
+# from .permissions import IsAdminOrReadOnly #пермишен мой
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, mixins, viewsets
+from rest_framework import filters, mixins, viewsets, permissions
+from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
+from django.contrib.auth import get_user_model
+from rest_framework.response import Response
+from rest_framework import status
 
 from reviews.models import Category, Genre, Review, Title
-
 from .permissions import (
     IsAuthorModeratorAdminOrReadOnly,
     IsEditOrReadOnly,
+    IsAdminOnly
 )
 from .serializers import (
     CategorySerializer,
@@ -19,7 +23,86 @@ from .serializers import (
     ReviewSerializer,
     TitleDetailSerializer,
     TitleSerializer,
+    MeSerializer,
+    SignUpSerializer,
+    TokenSerializer,
+    UserSerializer,
 )
+from reviews.utils import get_tokens_for_user
+from .filters import TitleFilter
+
+User = get_user_model()
+
+
+class AuthViewSet(viewsets.GenericViewSet):
+    permission_classes = [permissions.AllowAny]
+
+    @action(methods=['POST'], detail=False, url_path='signup')
+    def signup(self, request, *args, **kwargs):
+        serializer = SignUpSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(methods=['POST'], detail=False, url_path='token')
+    def token(self, request, *args, **kwargs):
+        serializer = TokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data
+        tokens = get_tokens_for_user(user)
+        return Response(tokens, status=status.HTTP_200_OK)
+
+
+class UsersPagination(PageNumberPagination):
+    page_size = 10
+
+
+class UserViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+):
+    queryset = User.objects.all()
+    lookup_field = 'username'
+    serializer_class = UserSerializer
+    permission_classes = [IsAdminOnly]
+    pagination_class = UsersPagination
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['username']
+
+    # PUT исключён из методов — Django сам вернёт 405
+    http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
+
+    def get_serializer_class(self):
+        if self.action == 'me':
+            return MeSerializer
+        return UserSerializer
+
+    @action(
+        methods=['GET', 'PATCH'],
+        detail=False,
+        url_path='me',
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def me(self, request, *args, **kwargs):
+        user = request.user
+        if request.method == 'GET':
+            serializer = self.get_serializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        # PATCH
+        serializer = self.get_serializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def perform_destroy(self, instance):
+        if instance == self.request.user:
+            raise permissions.PermissionDenied('Нельзя удалить самого себя.')
+        instance.delete()
 
 
 class PropertyViewSet(
@@ -45,21 +128,16 @@ class CategoryViewSet(PropertyViewSet):
     serializer_class = CategorySerializer
 
 
-class TitleViewSet(viewsets.ModelViewSet): ##пермишен
+class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(
         rating=Avg('reviews__score')
     ).order_by('name')
     permission_classes = (IsEditOrReadOnly,)  # fix: write — только админ
-    http_method_names = ["get", "post", "patch", "delete"]
+    http_method_names = ['get', 'post', 'patch', 'delete']
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
+    filterset_class = TitleFilter
     lookup_url_kwarg = 'titles_id'
     # Аннотация рейтинга (Avg по отзывам) + сортировка
-    queryset = Title.objects.annotate(
-        rating=Avg('reviews__score')
-    ).order_by('name')
-    permission_classes = (IsEditOrReadOnly,)  # fix: write — только админ
-
 
     def get_serializer_class(self):
         if self.action in ('create', 'partial_update'):

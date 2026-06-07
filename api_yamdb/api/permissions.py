@@ -1,11 +1,11 @@
 from rest_framework import permissions
 
 
-class IsAdminOrReadOnly(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return (
-            request.method in permissions.SAFE_METHODS or request.user.is_admin
-        )
+# class IsAdminOrReadOnly(permissions.BasePermission):
+#     def has_permission(self, request, view):
+#         return (
+#             request.method in permissions.SAFE_METHODS or request.user.is_admin
+#         )
 
 
 class IsEditOrReadOnly(permissions.BasePermission):
@@ -41,3 +41,11 @@ class IsAuthorModeratorAdminOrReadOnly(permissions.BasePermission):
             or request.user.is_moderator
             or request.user.is_admin
         )
+
+
+class IsAdminOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        # Сначала проверяем, что пользователь аутентифицирован
+        if not request.user or request.user.is_anonymous:
+            return False
+        return request.user.is_admin

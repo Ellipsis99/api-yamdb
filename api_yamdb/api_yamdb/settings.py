@@ -11,7 +11,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 # Кастомная модель пользователя (обязательно для YaMDB)
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'reviews.User'
 
 # Application definition
 INSTALLED_APPS = [
@@ -23,7 +23,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'django_filters',  # fix для DjangoFilterBackend в TitleViewSet
-    'users',
     'reviews',  # fix приложения reviews не было
     'api',
 ]
