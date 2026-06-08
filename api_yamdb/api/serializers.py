@@ -1,19 +1,20 @@
-from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
-from rest_framework.exceptions import NotFound
+from rest_framework import exceptions, serializers
 
 from reviews.models import Category, Comment, Genre, Review, Title
 from reviews.utils import (
     current_year,
     generate_confirmation_code,
-    send_confirmation_email
+    send_confirmation_email,
 )
 
 User = get_user_model()
 
 
 class SignUpSerializer(serializers.Serializer):
+    """Сериализатор для регистрации."""
+
     email = serializers.EmailField(max_length=254, required=True)
     username = serializers.CharField(max_length=150, required=True)
 
@@ -27,11 +28,9 @@ class SignUpSerializer(serializers.Serializer):
         email = data.get('email')
         username = data.get('username')
 
-        # Если пользователь существует — просто возвращаем данные (статус 200)
         if User.objects.filter(email=email, username=username).exists():
             return data
 
-        # Если есть конфликт по email или username — ошибка
         if User.objects.filter(email=email).exclude(
             username=username
         ).exists():
@@ -52,7 +51,6 @@ class SignUpSerializer(serializers.Serializer):
             email=validated_data['email'],
             defaults={'username': validated_data['username']}
         )
-        # fix код через utils
         code = generate_confirmation_code()
         user.confirmation_code = code
         user.save()
@@ -61,6 +59,8 @@ class SignUpSerializer(serializers.Serializer):
 
 
 class TokenSerializer(serializers.Serializer):
+    """Сериализатор для токена."""
+
     username = serializers.CharField(required=True)
     confirmation_code = serializers.CharField(required=True, write_only=True)
 
@@ -71,8 +71,7 @@ class TokenSerializer(serializers.Serializer):
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
-            # Важно: для несуществующего пользователя — 404, а не 400
-            raise NotFound('Пользователь не найден.')
+            raise exceptions.NotFound('Пользователь не найден.')
 
         if user.confirmation_code != code:
             raise serializers.ValidationError('Неверный код подтверждения.')
@@ -81,6 +80,8 @@ class TokenSerializer(serializers.Serializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели пользователя."""
+
     class Meta:
         model = User
         fields = (
@@ -89,6 +90,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class MeSerializer(serializers.ModelSerializer):
+    """Сериализатор для профиля текущего пользователя."""
+
     username = serializers.CharField(
         max_length=150,
         validators=[RegexValidator(
@@ -108,6 +111,7 @@ class MeSerializer(serializers.ModelSerializer):
 
 
 class GenreSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели жанра."""
 
     class Meta:
         model = Genre
@@ -115,6 +119,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    """Сериализатор для модели категории."""
 
     class Meta:
         model = Category
@@ -122,6 +127,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class BaseTitleSerializer(serializers.ModelSerializer):
+    """Базовый сериализатор для произведения."""
 
     class Meta:
         model = Title
@@ -135,6 +141,8 @@ class BaseTitleSerializer(serializers.ModelSerializer):
 
 
 class TitleDetailSerializer(BaseTitleSerializer):
+    """Сериализатор для конкретного произведения."""
+
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
     rating = serializers.IntegerField(read_only=True, default=None)
@@ -148,6 +156,8 @@ class TitleDetailSerializer(BaseTitleSerializer):
 
 
 class TitleSerializer(BaseTitleSerializer):
+    """Сериализатор для модели произведения."""
+
     genre = serializers.SlugRelatedField(
         many=True,
         slug_field='slug',
@@ -163,7 +173,7 @@ class TitleSerializer(BaseTitleSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    """Сериализатор отзывов."""
+    """Сериализатор для модели отзывов."""
 
     author = serializers.SlugRelatedField(
         read_only=True, slug_field='username'
@@ -188,7 +198,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    """Сериализатор комментариев к отзыву."""
+    """Сериализатор для модели комментариев к отзыву."""
 
     author = serializers.SlugRelatedField(
         read_only=True, slug_field='username'

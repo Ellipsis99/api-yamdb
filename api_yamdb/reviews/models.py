@@ -1,19 +1,19 @@
-from django.contrib.auth import get_user_model
-from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import RegexValidator
+from django.core.validators import (
+    MaxValueValidator,
+    MinValueValidator,
+    RegexValidator,
+)
+from django.db import models
 
 
 from .utils import current_year
 
-# User = get_user_model()
-
-MIN_SCORE = 1
-MAX_SCORE = 10 ##магические переменные
-
 
 class User(AbstractUser):
+    """Кастомный пользователь."""
+
     ROLE_USER = 'user'
     ROLE_MODERATOR = 'moderator'
     ROLE_ADMIN = 'admin'
@@ -73,6 +73,8 @@ class User(AbstractUser):
 
 
 class PropertyModel(models.Model):
+    """Абстрактная модель."""
+
     name = models.CharField(max_length=256)
     slug = models.SlugField(max_length=50, unique=True)
 
@@ -84,14 +86,20 @@ class PropertyModel(models.Model):
 
 
 class Genre(PropertyModel):
+    """Жанр, наследник PropertyModel."""
+
     pass
 
 
 class Category(PropertyModel):
+    """Категория, наследник PropertyModel."""
+
     pass
 
 
 class Title(models.Model):
+    """Произведение."""
+
     name = models.CharField(max_length=256)
     year = models.IntegerField(
         validators=[
@@ -123,6 +131,8 @@ class Title(models.Model):
 
 
 class GenreTitle(models.Model):
+    """Модель для связи ManyToMany."""
+
     genre = models.ForeignKey(
         Genre, on_delete=models.CASCADE
     )
@@ -152,10 +162,12 @@ class Review(models.Model):
         'оценка',
         validators=[
             MinValueValidator(
-                MIN_SCORE, message=f'Оценка не может быть ниже {MIN_SCORE}.'
+                settings.MIN_SCORE,
+                message=f'Оценка не может быть ниже {settings.MIN_SCORE}.'
             ),
             MaxValueValidator(
-                MAX_SCORE, message=f'Оценка не может быть выше {MAX_SCORE}.'
+                settings.MAX_SCORE,
+                message=f'Оценка не может быть выше {settings.MAX_SCORE}.'
             ),
         ],
     )
