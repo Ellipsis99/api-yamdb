@@ -59,7 +59,7 @@ class User(AbstractUser):
         ordering = ['username']
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
-
+    ## Молодцы
     @property
     def is_admin(self):
         return self.role == self.ROLE_ADMIN or self.is_superuser
@@ -71,7 +71,7 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
-
+## Стоит дать осмысленное название - непонятно, что делает этот класс
 class PropertyModel(models.Model):
     """Абстрактная модель."""
 
@@ -96,7 +96,9 @@ class Category(PropertyModel):
 
     pass
 
-
+## Для всех моделей сразу лучше прописывать: (необязательный)
+## 1) verbose_name для полей 
+## 2) в class Meta verbose_name и verbose_name_plural
 class Title(models.Model):
     """Произведение."""
 
@@ -106,6 +108,8 @@ class Title(models.Model):
             MinValueValidator(
                 0, message="Год выпуска не может быть отрицательным!"
             ),
+            ## Стоит написать свой валидатор
+            ##  https://stackoverflow.com/questions/41422565/django-year-validation-returns-ensure-this-value-is-less-than-or-equal-to-2016
             MaxValueValidator(
                 current_year,
                 message='Год выпуска не может быть больше текущего!'
@@ -193,6 +197,7 @@ class Comment(models.Model):
     review = models.ForeignKey(
         Review, on_delete=models.CASCADE, related_name='comments'
     )
+    ## Поля повторяются выше - можно вынести в абстрактную модель
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='comments'
     )

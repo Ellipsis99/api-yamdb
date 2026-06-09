@@ -105,7 +105,7 @@ class UserViewSet(viewsets.ModelViewSet):
             raise permissions.PermissionDenied('Нельзя удалить самого себя.')
         instance.delete()
 
-
+## Отличное решение!
 class PropertyViewSet(
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,

@@ -9,7 +9,7 @@ class IsEditOrReadOnly(permissions.BasePermission):
             request.method in permissions.SAFE_METHODS
             or (request.user.is_authenticated and request.user.is_admin)
         )
-
+    ## Лишний метод - логика повторяется выше
     def has_object_permission(self, request, view, obj):
         return (
             request.method in permissions.SAFE_METHODS
@@ -37,7 +37,7 @@ class IsAuthorModeratorAdminOrReadOnly(permissions.BasePermission):
 
 class IsAdminOnly(permissions.BasePermission):
     """Доступ только для администратора."""
-
+     ## Тело метода можно привести к одной строке с помощью операторов or и return
     def has_permission(self, request, view):
         if not request.user or request.user.is_anonymous:
             return False

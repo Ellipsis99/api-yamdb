@@ -115,6 +115,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Genre
+        ## Для исключения всего одного поля лучше использовать exclude(необязательный)
         fields = ('name', 'slug')
 
 
@@ -134,6 +135,7 @@ class BaseTitleSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'year', 'description', 'genre', 'category')
 
     def validate_year(self, value):
+        ## Лишняя переменная
         cur_year = current_year()
         if value > cur_year:
             raise serializers.ValidationError('Проверьте год выпуска!')
