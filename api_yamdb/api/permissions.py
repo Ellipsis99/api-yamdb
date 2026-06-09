@@ -10,11 +10,11 @@ class IsEditOrReadOnly(permissions.BasePermission):
             or (request.user.is_authenticated and request.user.is_admin)
         )
 
-    def has_object_permission(self, request, view, obj):
-        return (
-            request.method in permissions.SAFE_METHODS
-            or (request.user.is_authenticated and request.user.is_admin)
-        )
+    # def has_object_permission(self, request, view, obj):
+    #     return (
+    #         request.method in permissions.SAFE_METHODS
+    #         or (request.user.is_authenticated and request.user.is_admin)
+    #     )
 
 
 class IsAuthorModeratorAdminOrReadOnly(permissions.BasePermission):
@@ -39,6 +39,4 @@ class IsAdminOnly(permissions.BasePermission):
     """Доступ только для администратора."""
 
     def has_permission(self, request, view):
-        if not request.user or request.user.is_anonymous:
-            return False
-        return request.user.is_admin
+        return False  if not request.user or request.user.is_anonymous else request.user.is_admin
