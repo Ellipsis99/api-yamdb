@@ -1,13 +1,8 @@
-from django.conf import settings
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import (
-    MaxValueValidator,
-    MinValueValidator,
-    RegexValidator,
-)
+from django.core.validators import RegexValidator
 from django.db import models
 
-from .validators import year_validator
+from .validators import score_validator, year_validator
 
 class User(AbstractUser):
     """Кастомный пользователь."""
@@ -155,7 +150,27 @@ class GenreTitle(models.Model):
         ]
 
 
-class Review(models.Model):
+class ReviewCommentBaseModel(models.Model):
+    """Абстрактная модель с общими полями отзыва и комментария."""
+
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='%(class)ss',
+        verbose_name='автор',
+    )
+    text = models.TextField('текст')
+    pub_date = models.DateTimeField('дата публикации', auto_now_add=True)
+
+    class Meta:
+        abstract = True
+        ordering = ('-pub_date',)
+
+    def __str__(self):
+        return self.text
+
+
+class Review(ReviewCommentBaseModel):
     """Отзыв пользователя на произведение."""
 
     title = models.ForeignKey(
@@ -164,43 +179,22 @@ class Review(models.Model):
         related_name='reviews',
         verbose_name='произведение',
     )
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='reviews',
-        verbose_name='автор',
-    )
-    text = models.TextField('текст')
     score = models.PositiveSmallIntegerField(
         'оценка',
-        validators=[
-            MinValueValidator(
-                settings.MIN_SCORE,
-                message=f'Оценка не может быть ниже {settings.MIN_SCORE}.'
-            ),
-            MaxValueValidator(
-                settings.MAX_SCORE,
-                message=f'Оценка не может быть выше {settings.MAX_SCORE}.'
-            ),
-        ],
+        validators=[score_validator],
     )
-    pub_date = models.DateTimeField('дата публикации', auto_now_add=True)
 
-    class Meta:
+    class Meta(ReviewCommentBaseModel.Meta):
         verbose_name = 'отзыв'
         verbose_name_plural = 'Отзывы'
-        ordering = ('-pub_date',)
         constraints = [
             models.UniqueConstraint(
                 fields=['title', 'author'], name='unique_review'
             )
         ]
 
-    def __str__(self):
-        return self.text
 
-
-class Comment(models.Model):
+class Comment(ReviewCommentBaseModel):
     """Комментарий к отзыву."""
 
     review = models.ForeignKey(
@@ -209,19 +203,7 @@ class Comment(models.Model):
         related_name='comments',
         verbose_name='отзыв',
     )
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='comments',
-        verbose_name='автор',
-    )
-    text = models.TextField('текст')
-    pub_date = models.DateTimeField('дата публикации', auto_now_add=True)
 
-    class Meta:
+    class Meta(ReviewCommentBaseModel.Meta):
         verbose_name = 'комментарий'
         verbose_name_plural = 'Комментарии'
-        ordering = ('-pub_date',)
-
-    def __str__(self):
-        return self.text
