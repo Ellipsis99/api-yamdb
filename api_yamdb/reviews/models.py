@@ -4,6 +4,7 @@ from django.db import models
 
 from .validators import score_validator, year_validator
 
+
 class User(AbstractUser):
     """Кастомный пользователь."""
 
@@ -118,7 +119,7 @@ class Title(models.Model):
         verbose_name='категория',
     )
 
-    class Meta: 
+    class Meta:
         verbose_name = 'произведение'
         verbose_name_plural = 'Произведения'
 

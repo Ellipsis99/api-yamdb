@@ -14,7 +14,6 @@ from rest_framework.decorators import action
 
 from reviews.models import Category, Genre, Review, Title
 from reviews.utils import get_tokens_for_user
-
 from .filters import TitleFilter
 from .permissions import (
     IsAdminOnly,

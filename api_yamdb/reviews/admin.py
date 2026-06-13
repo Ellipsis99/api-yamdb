@@ -9,8 +9,13 @@ admin.site.empty_value_display = 'Не задано'
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'author', 'score', 'pub_date')
-    list_filter = ('score', 'pub_date')
+    list_display = (
+        'id', 'title', 'author',
+        'score', 'pub_date'
+    )
+    list_filter = (
+        'score', 'pub_date'
+    )
     search_fields = ('text', 'author__username')
 
 
