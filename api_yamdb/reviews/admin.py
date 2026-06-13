@@ -7,8 +7,18 @@ from .models import Category, Comment, Genre, GenreTitle, Review, Title, User
 admin.site.empty_value_display = 'Не задано'
 
 
-admin.site.register(Review)
-admin.site.register(Comment)
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title', 'author', 'score', 'pub_date')
+    list_filter = ('score', 'pub_date')
+    search_fields = ('text', 'author__username')
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('id', 'review', 'author', 'pub_date')
+    list_filter = ('pub_date',)
+    search_fields = ('text', 'author__username')
 
 
 @admin.register(Category, Genre)

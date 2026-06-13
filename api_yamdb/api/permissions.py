@@ -31,6 +31,9 @@ class IsAuthorModeratorAdminOrReadOnly(permissions.BasePermission):
 
 class IsAdminOnly(permissions.BasePermission):
     """Доступ только для администратора."""
-
+    # кажется именно этого хочет ревьюер. 
+    # вместо or поизтивный and + едионообразие с остальным кодом.
+    # без is_authenticated будут пробелмы с анонимами,
+    # по этому проверяем авторизацию и уточняеем что это админ.
     def has_permission(self, request, view):
-        return False if not request.user or request.user.is_anonymous else request.user.is_admin
+        return request.user.is_authenticated and request.user.is_admin
