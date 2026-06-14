@@ -4,12 +4,56 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import Category, Comment, Genre, GenreTitle, Review, Title, User
 
 
-admin.site.register(Category)
-admin.site.register(Genre)
-admin.site.register(Title)
-admin.site.register(GenreTitle)
-admin.site.register(Review)
-admin.site.register(Comment)
+admin.site.empty_value_display = 'Не задано'
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = (
+        'id', 'title', 'author',
+        'score', 'pub_date'
+    )
+    list_filter = (
+        'score', 'pub_date'
+    )
+    search_fields = ('text', 'author__username')
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('id', 'review', 'author', 'pub_date')
+    list_filter = ('pub_date',)
+    search_fields = ('text', 'author__username')
+
+
+@admin.register(Category, Genre)
+class PropertyTitleAdmin(admin.ModelAdmin):
+    list_display = (
+        'id', 'name', 'slug'
+    )
+    list_editable = (
+        'name', 'slug'
+    )
+    search_fields = ('slug', 'name')
+
+
+class GenreTitleInline(admin.StackedInline):
+    model = GenreTitle
+    autocomplete_fields = ('genre', 'title')
+    extra = 1
+
+
+@admin.register(Title)
+class TitleAdmin(admin.ModelAdmin):
+    inlines = (GenreTitleInline,)
+    list_display = (
+        'id', 'name', 'year',
+        'description', 'category'
+    )
+    list_editable = (
+        'name', 'year', 'description', 'category'
+    )
+    search_fields = ('name',)
 
 
 @admin.register(User)

@@ -115,7 +115,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Genre
-        fields = ('name', 'slug')
+        exclude = ('id', )
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -123,7 +123,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ('name', 'slug')
+        exclude = ('id', )
 
 
 class BaseTitleSerializer(serializers.ModelSerializer):
@@ -134,8 +134,7 @@ class BaseTitleSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'year', 'description', 'genre', 'category')
 
     def validate_year(self, value):
-        cur_year = current_year()
-        if value > cur_year:
+        if value > current_year():
             raise serializers.ValidationError('Проверьте год выпуска!')
         return value
 

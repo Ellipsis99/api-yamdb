@@ -14,7 +14,6 @@ from rest_framework.decorators import action
 
 from reviews.models import Category, Genre, Review, Title
 from reviews.utils import get_tokens_for_user
-
 from .filters import TitleFilter
 from .permissions import (
     IsAdminOnly,
@@ -106,7 +105,7 @@ class UserViewSet(viewsets.ModelViewSet):
         instance.delete()
 
 
-class PropertyViewSet(
+class PropertyTitleViewSet(
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
     mixins.ListModelMixin,
@@ -120,14 +119,14 @@ class PropertyViewSet(
     search_fields = ('name',)
 
 
-class GenreViewSet(PropertyViewSet):
+class GenreViewSet(PropertyTitleViewSet):
     """ViewSet для жанров произведения."""
 
     queryset = Genre.objects.all().order_by('name')
     serializer_class = GenreSerializer
 
 
-class CategoryViewSet(PropertyViewSet):
+class CategoryViewSet(PropertyTitleViewSet):
     """ViewSet для категории произведения."""
 
     queryset = Category.objects.all().order_by('name')
